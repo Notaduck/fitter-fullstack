@@ -1,0 +1,55 @@
+version: "3.8"
+services:
+  app:
+    container_name: fitter-go
+    build:
+      context: ./fitter-go
+      target: dev
+    volumes:
+        - ./fitter-go:/app:rw,delegated
+    tty: true
+    ports: 
+      - 3030:3030
+      - 8181:8080
+      - 2345:2345
+    depends_on:
+      - db
+      - rabbitmq
+    environment:
+      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
+  db:
+      image: postgres:15.4-alpine
+      environment:
+        - POSTGRES_USER=fitter
+        - POSTGRES_PASSWORD=fitter
+      ports:
+        - '5432:5432'
+      volumes: 
+        - dbdata:/var/lib/postgresql/data
+      deploy:
+        restart_policy:
+          condition: on-failure
+          
+  pgweb:
+      container_name: pgweb  # optional
+      image: sosedoff/pgweb
+      ports: 
+        - "8081:8081" 
+      environment:
+        - DATABASE_URL=postgres://fitter:fitter@db:5432/postgres?sslmode=disable
+      depends_on:
+        - db  # my database container is called postgres, not db
+
+      deploy:
+        restart_policy:
+          condition: on-failure
+          delay: 5s
+  rabbitmq:
+      image: rabbitmq:3-management-alpine
+      ports:
+        - 5672:5672
+        - 15672:15672
+
+volumes:
+  dbdata:
+    driver: local
