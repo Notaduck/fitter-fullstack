@@ -4,7 +4,7 @@
 
 
     {
-      "name": "Delve into Docker",
+      "name": "Fitter Go",
       "type": "go",
       "request": "attach",
       "mode": "remote",
@@ -15,6 +15,23 @@
         }
       ],
       "port": 2345,
+      "host": "127.0.0.1",
+      "showLog": true,
+      "apiVersion": 2,
+      "trace": "verbose"
+    },
+    {
+      "name": "Fitter Go - fit parser",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "substitutePath": [
+        {
+          "from": "${workspaceFolder}/",
+          "to": "/app/"
+        }
+      ],
+      "port": 2346,
       "host": "127.0.0.1",
       "showLog": true,
       "apiVersion": 2,
