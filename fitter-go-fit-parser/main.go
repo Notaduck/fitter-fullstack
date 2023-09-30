@@ -25,7 +25,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
+	conn, err := amqp.Dial("amqp://consumer:consumer@rabbitmq:5672/")
 	if err != nil {
 		panic(err)
 	}
@@ -43,8 +43,8 @@ func main() {
 	fmt.Println("Successfully connected to RabbitMQ instance")
 
 	msgs, err := ch.Consume(
-		"my_exchange", // queue
-		"",            // consumer
+		"fit_queue", // queue
+		"",          // consumer
 		// true,          // auto ack
 		true,  // auto ack
 		false, // exclusive

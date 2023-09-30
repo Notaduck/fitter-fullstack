@@ -14,7 +14,7 @@ bin = "/app/tmp/main"
 
 # Customize binary.
 #full_bin = "dlv --listen=:2345 --headless=true --log=true --log-output=debugger,debuglineerr,gdbwire,lldbout,rpc --accept-multiclient --api-version=2 exec /app/tmp/main"
-full_bin = "dlv  exec  --continue  --listen=:2345 --headless=true --log=true --accept-multiclient --api-version=2  /app/tmp/main"
+#full_bin = "dlv  exec  --continue  --listen=:2345 --headless=true --log=true --accept-multiclient --api-version=2  /app/tmp/main"
 
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html"]

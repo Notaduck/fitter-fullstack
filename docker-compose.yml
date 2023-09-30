@@ -31,7 +31,7 @@ services:
       - db
       - rabbitmq
     environment:
-      AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
+      AMQP_SERVER_URL: amqp://consumer:consumer@rabbitmq:5672/
   db:
       image: postgres:15.4-alpine
       environment:
@@ -44,7 +44,27 @@ services:
       deploy:
         restart_policy:
           condition: on-failure
-          
+  web:
+      build:
+        context: ./web
+        dockerfile: Dockerfile
+      container_name: fitter-web
+      ports:
+        - '3000:3000'
+      volumes:
+        - ./web:/app
+        # - /app/node_modules
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: passwd 
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
   pgweb:
       container_name: pgweb  # optional
       image: sosedoff/pgweb
@@ -64,7 +84,29 @@ services:
       ports:
         - 5672:5672
         - 15672:15672
+      healthcheck:
+        test: [ "CMD", "nc", "-z", "127.0.0.1", "5672" ]
+        interval: 5s
+        timeout: 15s
+        retries: 1
+  # wait-for-rabbitmq:
+  #   build: 
+  #     context: .
+  #     dockerfile: "Dockerfile.wait-for-db"
+  #   entrypoint: ["/wait-for-it.sh", "rabbitmq:5672", "--", "echo", "RabbitMQ is ready!"]
+  #   depends_on:
+  #     - rabbitmq
+  #   command: ["--timeout=60"]
+  # wait-for-db:
+  #   build: 
+  #     context: .
+  #     dockerfile: "Dockerfile.wait-for-db"
+  #   entrypoint: ["/wait-for-it.sh", "db:5432", "--", "echo", "DB is ready!"]
+  #   depends_on:
+  #     - db
+  #   command: ["--timeout=60"]
 
 volumes:
+  pgadmin-data:
   dbdata:
     driver: local

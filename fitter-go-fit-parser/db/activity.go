@@ -15,15 +15,18 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
 
 	err := Transact(s.db, func(tx *sql.Tx) error {
 
-		var filteredRedords = []*fit.RecordMsg{}
+		// var filteredRedords = []*fit.RecordMsg{}
 		var distance float64
+		var totalElevationChange uint16
+		var previousElevation uint16
 
 		for index, record := range activity.Records {
 			if !(record.PositionLat.Invalid() && record.PositionLong.Invalid()) {
-				filteredRedords = append(filteredRedords, record)
+				// filteredRedords = append(filteredRedords, record)
 
 				if index != 0 {
 
+					// calculate the distance based on the current and previous long,lat with the haversine formula
 					lat2 := record.PositionLat.Degrees()
 
 					long2 := record.PositionLong.Degrees()
@@ -36,15 +39,27 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
 						distance = distance + haversine(lat1, long1, lat2, long2)
 					}
 
+					// calulcate the elevation
+
+					elevation := *&record.Altitude
+					if previousElevation != 0 {
+						elevation := *&record.Altitude
+						if previousElevation != 0 {
+							elevationChange := elevation - previousElevation
+							totalElevationChange += elevationChange
+						}
+					}
+					previousElevation = elevation
+
 				}
+
+				previousElevation = record.Altitude
 
 			}
 
 		}
-		fmt.Println("D", distance)
+
 		fmt.Printf("Distance: %.2f km\n", distance)
-		// fmt.Println("avg_speed", avgSpeed)
-		// fmt.Println("total_distance", totalDistance)
 
 		stmt, err := tx.Prepare(`
             INSERT INTO activities (
@@ -57,9 +72,10 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
                 event_type,
                 local_timestamp,
                 event_group,
-				distance
+				distance,
+				elevation
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
             ) RETURNING id
         `)
 		if err != nil {
@@ -78,6 +94,7 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
 			activity.Activity.LocalTimestamp,
 			activity.Activity.EventGroup,
 			distance,
+			totalElevationChange,
 		).Scan(&id)
 
 		if err != nil {
@@ -155,7 +172,6 @@ func haversine(lat1, lon1, lat2, lon2 float64) float64 {
 	a := math.Pow(math.Sin(dlat/2), 2) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(dlon/2), 2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	r := 6371.0 // Earth's radius in km
-	println(a, c, r)
 	return r * c
 }
 
