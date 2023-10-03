@@ -1,0 +1,20 @@
+# Config file for [Air](https://github.com/cosmtrek/air) in TOML format
+
+# Working directory
+# . or absolute path, please note that the directories following must be under root.
+root = "/app"
+tmp_dir = "/tmp"
+
+[build]
+# Just plain old shell command. You could use `make` as well.
+cmd = "go build -buildvcs=false -gcflags='all=-N -l' -o ./tmp/main ./cmd/api/"
+
+# Binary file yields from `cmd`.
+bin = "/app/tmp/main"
+
+# Customize binary.
+#full_bin = "dlv --listen=:2345 --headless=true --log=true --log-output=debugger,debuglineerr,gdbwire,lldbout,rpc --accept-multiclient --api-version=2 exec /app/tmp/main"
+full_bin = "dlv exec --continue --listen=:2345 --headless=true --log=true --accept-multiclient --api-version=2  /app/tmp/main"
+
+# Watch these filename extensions.
+include_ext = ["go", "tpl", "tmpl", "html"]

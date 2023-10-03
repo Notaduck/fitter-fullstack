@@ -1,0 +1,2 @@
+- pipeline.id: sync-activities-pipeline
+  path.config: "/usr/share/logstash/pipeline/sync-activities.conf"
