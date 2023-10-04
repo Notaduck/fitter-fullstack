@@ -48,27 +48,31 @@ func (s *APIServer) Run() {
 	http.HandleFunc("/login", makeHTTPHandleFunc(s.handleLogin))
 	http.HandleFunc("/private", EnsureValidToken()(makeHTTPHandleFunc(s.handlePrivate)))
 	// CORS middleware
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		// Allow requests from localhost:3000
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Authorization, Content-Type")
-
-		if r.Method == http.MethodOptions {
-			// Handle preflight requests
-			return
-		}
-
-		// Continue with the actual request
-		http.DefaultServeMux.ServeHTTP(w, r)
-	}
 
 	// Start the server with the CORS middleware
 	log.Println("JSON API server running on port:", ":3030")
-	err := http.ListenAndServe(":3030", http.HandlerFunc(handler))
+	err := http.ListenAndServe(":3030", enableCORS(http.DefaultServeMux))
 	if err != nil {
 		log.Fatalln("There's an error with the server,", err)
 	}
+}
+
+func enableCORS(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Allow requests from localhost:3000
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		// Allow additional headers and methods as needed
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Handle preflight OPTIONS requests
+		if r.Method == http.MethodOptions {
+			return
+		}
+
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func (s *APIServer) handlePrivate(w http.ResponseWriter, r *http.Request) error {
@@ -140,16 +144,6 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 
 	// Write the response as JSON with an HTTP status code of 200 (OK)
 	return WriteJSON(w, http.StatusOK, resp)
-}
-func enableCORS(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Authorization, Content-Type")
-
-		// Continue with the request
-		handler.ServeHTTP(w, r)
-	})
 }
 
 // apiFunc represents a function that handles API requests.
