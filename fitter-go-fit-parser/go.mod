@@ -2,13 +2,16 @@ module github.com/notaduck/fitter-go-fit-parser
 
 go 1.21.0
 
+require github.com/lib/pq v1.10.9
+
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/client9/misspell v0.3.4 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
+	github.com/jinzhu/gorm v1.9.16 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/kisielk/errcheck v1.6.1 // indirect
-	github.com/lib/pq v1.10.9
 	github.com/mdempsky/unconvert v0.0.0-20200228143138-95ecdbfc0b5f // indirect
 	github.com/rabbitmq/amqp091-go v1.8.1 // indirect
 	github.com/tormoder/fit v0.14.0 // indirect

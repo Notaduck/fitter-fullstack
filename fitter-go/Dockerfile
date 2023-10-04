@@ -38,6 +38,8 @@ COPY . /app
 RUN go mod download \
     && go mod verify
 
+# ENV GOCACHE=/root/.cache/go-build
+# RUN --mount=type=cache,target="/root/.cache/go-build" go build -buildvcs=false -o my-great-program -a .
 RUN go build -buildvcs=false -o my-great-program -a .
 
 ### Production
