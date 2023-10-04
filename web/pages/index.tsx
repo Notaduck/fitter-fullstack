@@ -4,10 +4,11 @@ import React from "react";
 import Image from 'next/image'
 import RootLayout, { Layout } from "@/app/layout";
 import { Navigation } from "@/app/components/navigation/navigation";
-import { fetchActivities } from "@/hooks/activities/useActivities";
+import { useAllActivities } from "@/hooks/activity-hook";
 
 export default function IndexPage() {
-  const [searchValue, setSearchValue] = React.useState("");
+  const { data: postData } = useAllActivities();
+  
 
   return (
 
@@ -123,17 +124,17 @@ export default function IndexPage() {
   );
 }
 
-export async function getStaticProps() {
-  const queryClient = new QueryClient()
+// export async function getStaticProps() {
+//   const queryClient = new QueryClient()
 
-  await queryClient.prefetchQuery({
-    queryKey: ['posts', 10],
-    queryFn: () => fetchActivities("yo"),
-  })
+//   await queryClient.prefetchQuery({
+//     queryKey: ['posts', 10],
+//     queryFn: () => fetchActivities("yo"),
+//   })
 
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient),
-    },
-  }
-}
+//   return {
+//     props: {
+//       dehydratedState: dehydrate(queryClient),
+//     },
+//   }
+// }
