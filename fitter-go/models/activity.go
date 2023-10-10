@@ -2,10 +2,13 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Activity struct {
-	ID             int       `json:"id"`
+	gorm.Model
+	ID             int       `gorm:"primaryKey" json:"id"`
 	Timestamp      time.Time `json:"timeStamp"`
 	TotalTimerTime int       `json:"totalTimerTime"`
 	NumSessions    int       `json:"numSessions"`

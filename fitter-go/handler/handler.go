@@ -43,43 +43,32 @@ func NewAPIServer(listenAddr string, storage storage.Storage, mq mq.RabbitMQ) *A
 // Run starts the API server.
 func (s *APIServer) Run() {
 
-	http.HandleFunc("/activity", makeHTTPHandleFunc(s.handleActivity))
+	// http.HandleFunc("/activity", (makeHTTPHandleFunc(s.handleActivity)))
 	http.HandleFunc("/user", makeHTTPHandleFunc(s.handleUser))
 	http.HandleFunc("/login", makeHTTPHandleFunc(s.handleLogin))
 	http.HandleFunc("/private", EnsureValidToken()(makeHTTPHandleFunc(s.handlePrivate)))
+	http.HandleFunc("/activity", EnsureValidToken()(makeHTTPHandleFunc(s.handleActivity)))
 	// CORS middleware
 
 	// Start the server with the CORS middleware
 	log.Println("JSON API server running on port:", ":3030")
-	err := http.ListenAndServe(":3030", enableCORS(http.DefaultServeMux))
+
+	err := http.ListenAndServe(":3030", nil)
+
 	if err != nil {
 		log.Fatalln("There's an error with the server,", err)
 	}
 }
 
-func enableCORS(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Allow requests from localhost:3000
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		// Allow additional headers and methods as needed
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		// Handle preflight OPTIONS requests
-		if r.Method == http.MethodOptions {
-			return
-		}
-
-		handler.ServeHTTP(w, r)
-	})
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
 func (s *APIServer) handlePrivate(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method == "POST" {
 
-		user := getUserFromContext(r)
+		user := s.getUserFromContext(r)
 		fmt.Println(user)
 		return WriteJSON(w, http.StatusAccepted, 1337)
 	}
@@ -239,11 +228,16 @@ func withJWTAuth(handlerFunc http.HandlerFunc, s storage.Storage) http.HandlerFu
 	}
 }
 
-func getUserFromContext(r *http.Request) error {
+func (a *APIServer) getUserFromContext(r *http.Request) *models.User {
 
 	claims := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-	fmt.Println(claims.RegisteredClaims.Subject)
-	return nil
+
+	user, err := a.storage.GetUserByAuth0Id(claims.RegisteredClaims.Subject)
+
+	if err != nil {
+		log.Println("No d found found")
+	}
+	return user
 }
 
 func validateJWT(tokenString string) (*jwt.Token, error) {

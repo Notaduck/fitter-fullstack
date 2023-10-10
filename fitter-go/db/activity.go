@@ -10,33 +10,6 @@ import (
 	"github.com/tormoder/fit"
 )
 
-func (s *PostgresStore) createActivityTable() error {
-
-	query := `CREATE TABLE IF NOT EXISTS activities (
-    id SERIAL PRIMARY KEY,
-	user_id				      INTEGER NOT NULL,
-    timestamp TIMESTAMPTZ,
-    total_timer_time INT,
-    num_sessions INT,
-    type INT,
-    event INT,
-    event_type INT,
-    local_timestamp TIMESTAMPTZ,
-    event_group INT,
-	distance DOUBLE PRECISION,
-	total_ride_time BIGINT,
-	elevation bigint,
-	CONSTRAINT fk_user
-      FOREIGN KEY(user_id) 
-	  REFERENCES users(id)
-      ON DELETE CASCADE
-);`
-
-	_, err := s.db.Exec(query)
-
-	return err
-}
-
 func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (int64, error) {
 
 	var id int64
@@ -90,55 +63,20 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
 
 func (s *PostgresStore) CreateActivities(activities *[]models.Activity) error {
 
-	return Transact(s.db, func(tx *sql.Tx) error {
+	result := s.db.Create(activities)
 
-		stmt, err := tx.Prepare(`
-            INSERT INTO activities (
-                timestamp,
-                total_timer_time,
-                num_sessions,
-                type,
-                event,
-                event_type,
-                local_timestamp,
-                event_group
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8
-            ) RETURNING id
-        `)
+	if result.Error != nil {
+		return result.Error
+	}
 
-		if err != nil {
-			panic(err)
-		}
 
-		defer stmt.Close()
-		var id int64
-		for _, activity := range *activities {
-			err := stmt.QueryRow(
-				activity.Timestamp,
-				activity.TotalTimerTime,
-				activity.NumSessions,
-				activity.Type,
-				activity.Event,
-				activity.EventType,
-				activity.LocalTimestamp,
-				activity.EventGroup,
-			).Scan(&id)
+	return nil
 
-			if err != nil {
-				// An error occurred, panic to trigger rollback
-				panic(err)
-			}
-		}
-		fmt.Println(id)
-
-		return nil
-	})
 }
 
 func (s *PostgresStore) GetActivities(userId int) ([]*Activity, error) {
 
-	rows, err := s.db.Query(`SELECT id,
+	rows, err := s.db.(`SELECT id,
 								timestamp,
 								total_timer_time,
 								ROUND(distance::numeric,2),

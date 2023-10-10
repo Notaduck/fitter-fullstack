@@ -15,7 +15,7 @@ import (
 )
 
 func (s *APIServer) handleActivity(w http.ResponseWriter, r *http.Request) error {
-
+	enableCors(&w)
 	if r.Method == "GET" {
 		return s.getActivities(w, r)
 	}
@@ -28,7 +28,9 @@ func (s *APIServer) handleActivity(w http.ResponseWriter, r *http.Request) error
 
 func (s *APIServer) getActivities(w http.ResponseWriter, r *http.Request) error {
 
-	// user := getUserFromContext(r)
+	user := s.getUserFromContext(r)
+
+	fmt.Println("user", user)
 
 	id := r.URL.Query().Get("id")
 
@@ -80,7 +82,9 @@ func (s *APIServer) getActivities(w http.ResponseWriter, r *http.Request) error 
 
 func (s *APIServer) createActivities(w http.ResponseWriter, r *http.Request) error {
 
-	// user := getUserFromContext(r)
+	user := s.getUserFromContext(r)
+
+	fmt.Println("user", user)
 
 	err := r.ParseMultipartForm(10 << 20) // 10 MB limit for uploaded files
 

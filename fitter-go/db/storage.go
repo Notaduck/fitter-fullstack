@@ -7,6 +7,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/notaduck/fitter-go/models"
 	"github.com/tormoder/fit"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Storage interface {
@@ -20,23 +22,27 @@ type Storage interface {
 	CreateUser(*models.User) error
 	GetUserById(id int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	GetUserByAuth0Id(auth0Id string) (*models.User, error)
 }
 
 type PostgresStore struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
 	connStr := "host=db user=fitter dbname=fitter password=fitter sslmode=disable port=5432"
 
-	db, err := sql.Open("postgres", connStr)
+	// dsn := "host=localhost user=gorm password=gorm dbname=gorm port=9920 sslmode=disable TimeZone=Asia/Shanghai"
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+
+	// db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
+	// if err := db.Ping(); err != nil {
+	// 	return nil, err
+	// }
 
 	return &PostgresStore{
 		db: db,

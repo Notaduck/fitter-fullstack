@@ -1,13 +1,17 @@
 package storage
 
 import (
-	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/notaduck/fitter-go/models"
-	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
+
+type Product struct {
+	gorm.Model
+	Code  string
+	Price uint
+}
 
 func (s *PostgresStore) createUserTable() error {
 	query := `create table if not exists users (
@@ -48,55 +52,46 @@ func (s *PostgresStore) CreateUser(user *models.User) error {
 
 func (s *PostgresStore) GetUserByEmail(email string) (*models.User, error) {
 
-	rows, err := s.db.Query("select * from users where email = $1", email)
+	var user models.User
 
-	if err != nil {
+	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
+
 		return nil, err
 	}
 
-	for rows.Next() {
-		return scanIntoUser(rows)
-	}
-
-	return nil, fmt.Errorf("user %s not found", email)
+	return &user, nil
 }
 
 func (s *PostgresStore) GetUserById(id int) (*models.User, error) {
-	rows, err := s.db.Query("select * from users where id = $1", id)
-	if err != nil {
+
+	var user models.User
+
+	if err := s.db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
-	for rows.Next() {
-		return scanIntoUser(rows)
-	}
+	return &user, nil
 
-	return nil, fmt.Errorf("user %d not found", id)
 }
 
 func NewUser(firstName, lastName, password string) (*models.User, error) {
-	encpw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
+
+	return &models.User{
+		FirstName: firstName,
+		LastName:  lastName,
+		CreatedAt: time.Now().UTC(),
+	}, nil
+
+}
+
+func (s *PostgresStore) GetUserByAuth0Id(auth0Id string) (*models.User, error) {
+
+	var user models.User
+
+	if err := s.db.Where("auth0_id = ?", auth0Id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
-	return &models.User{
-		FirstName:         firstName,
-		LastName:          lastName,
-		EncryptedPassword: string(encpw),
-		CreatedAt:         time.Now().UTC(),
-	}, nil
-}
-func scanIntoUser(rows *sql.Rows) (*models.User, error) {
-	user := new(models.User)
-	err := rows.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.EncryptedPassword,
-		&user.Email,
-		&user.Username,
-		&user.CreatedAt)
+	return &user, nil
 
-	return user, err
 }
