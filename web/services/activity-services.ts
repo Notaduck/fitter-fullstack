@@ -2,7 +2,11 @@ import axios from "axios";
 
 class ActivityService {
     async getAllActivities() {
-        const response = await axios.get('http://fitter-go:3030/activity')
+
+        // const url = 'http://fitter-go:3030/activity';
+        
+        const response = await axios.get('http://localhost:3000/api/hello')
+
 
         // console.log(response)
         return response

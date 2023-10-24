@@ -22,7 +22,7 @@ func main() {
 	s, err := storage.NewPostgresStore()
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	conn, err := amqp.Dial("amqp://consumer:consumer@rabbitmq:5672/")

@@ -9,6 +9,9 @@ import (
 type Activity struct {
 	gorm.Model
 	ID             int       `gorm:"primaryKey" json:"id"`
+	Distance       float64   `json:"distance"`
+	Elevation      float32   `json:"elevation"`
+	TotalRideTime  int       `json:"totalRideTime"`
 	Timestamp      time.Time `json:"timeStamp"`
 	TotalTimerTime int       `json:"totalTimerTime"`
 	NumSessions    int       `json:"numSessions"`
@@ -17,4 +20,5 @@ type Activity struct {
 	EventType      int       `json:"eventType"`
 	LocalTimestamp time.Time `json:"localTimestamp"`
 	EventGroup     int       `json:"eventGroup"`
+	Records        []Record
 }

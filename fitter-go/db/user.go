@@ -4,44 +4,13 @@ import (
 	"time"
 
 	"github.com/notaduck/fitter-go/models"
-	"gorm.io/gorm"
 )
 
-type Product struct {
-	gorm.Model
-	Code  string
-	Price uint
-}
-
-func (s *PostgresStore) createUserTable() error {
-	query := `create table if not exists users (
-		id serial primary key,
-		first_name varchar(100),
-		last_name varchar(100),
-		encrypted_password varchar(100),
-		email 	varchar(100),
-		user_name 	varchar(100),
-		created_at timestamp
-	);`
-
-	_, err := s.db.Exec(query)
-	return err
-}
-
 func (s *PostgresStore) CreateUser(user *models.User) error {
-	query := `insert into users 
-	(first_name, last_name, encrypted_password, created_at, email, user_name)
-	values ($1, $2, $3, $4, $5, $6)`
 
-	_, err := s.db.Query(
-		query,
-		user.FirstName,
-		user.LastName,
-		user.EncryptedPassword,
-		user.CreatedAt,
-		user.Email,
-		user.Username,
-	)
+	userEntity := s.db.Create(&user)
+
+	err := userEntity.Error
 
 	if err != nil {
 		return err

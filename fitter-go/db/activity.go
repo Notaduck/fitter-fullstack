@@ -1,64 +1,79 @@
 package storage
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	"time"
-
 	"github.com/notaduck/fitter-go/models"
 	"github.com/tormoder/fit"
 )
 
 func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (int64, error) {
 
-	var id int64
+	var activityEntity *models.Activity
 
-	err := Transact(s.db, func(tx *sql.Tx) error {
-		stmt, err := tx.Prepare(`
-            INSERT INTO activities (
-				user_id,
-                timestamp,
-                total_timer_time,
-                num_sessions,
-                type,
-                event,
-                event_type,
-                local_timestamp,
-                event_group
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9
-            ) RETURNING id
-        `)
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
+	var records []*models.Record
 
-		err = stmt.QueryRow(
-			userId,
-			activity.Activity.Timestamp,
-			activity.Activity.TotalTimerTime,
-			activity.Activity.NumSessions,
-			activity.Activity.Type,
-			activity.Activity.Event,
-			activity.Activity.EventType,
-			activity.Activity.LocalTimestamp,
-			activity.Activity.EventGroup,
-		).Scan(&id)
+	for _, record := range activity.Records {
 
-		if err != nil {
-			return err
-		}
+		records = append(records, models.Record{
+			// Model:                         gorm.Model{},
+			// ID:                            userId,
+			// ActivityID:                    0,
+			Timestamp:                     record.Timestamp,
+			PositionLat:                   record.PositionLat.Degrees(),
+			PositionLong:                  record.PositionLong.Degrees(),
+			Altitude:                      0,
+			HeartRate:                     0,
+			Cadence:                       0,
+			Distance:                      0,
+			Speed:                         0,
+			Power:                         0,
+			CompressedSpeedDistance:       []byte{},
+			Grade:                         0,
+			Resistance:                    0,
+			TimeFromCourse:                0,
+			CycleLength:                   0,
+			Temperature:                   0,
+			Speed1s:                       []byte{},
+			Cycles:                        0,
+			TotalCycles:                   0,
+			CompressedAccumulatedPower:    0,
+			AccumulatedPower:              0,
+			LeftRightBalance:              0,
+			GPSAccuracy:                   0,
+			VerticalSpeed:                 0,
+			Calories:                      0,
+			VerticalOscillation:           0,
+			StanceTimePercent:             0,
+			StanceTime:                    0,
+			ActivityType:                  0,
+			LeftTorqueEffectiveness:       0,
+			RightTorqueEffectiveness:      0,
+			LeftPedalSmoothness:           0,
+			RightPedalSmoothness:          0,
+			CombinedPedalSmoothness:       0,
+			Time128:                       0,
+			StrokeType:                    0,
+			Zone:                          0,
+			BallSpeed:                     0,
+			Cadence256:                    0,
+			FractionalCadence:             0,
+			TotalHemoglobinConc:           0,
+			TotalHemoglobinConcMin:        0,
+			TotalHemoglobinConcMax:        0,
+			SaturatedHemoglobinPercent:    0,
+			SaturatedHemoglobinPercentMin: 0,
+			SaturatedHemoglobinPercentMax: 0,
+			DeviceIndex:                   0,
+			EnhancedSpeed:                 0,
+			EnhancedAltitude:              0,
+		})
 
-		return nil
-	})
-
-	if err != nil {
-		return -1, err
 	}
 
-	return id, nil
+	if result := s.db.Create(activityEntity); result.Error != nil {
+		return -1, result.Error
+	}
+
+	return -1, nil
 }
 
 func (s *PostgresStore) CreateActivities(activities *[]models.Activity) error {
@@ -69,133 +84,29 @@ func (s *PostgresStore) CreateActivities(activities *[]models.Activity) error {
 		return result.Error
 	}
 
-
 	return nil
 
 }
 
-func (s *PostgresStore) GetActivities(userId int) ([]*Activity, error) {
+func (s *PostgresStore) GetActivities(userId int) ([]*models.Activity, error) {
 
-	rows, err := s.db.(`SELECT id,
-								timestamp,
-								total_timer_time,
-								ROUND(distance::numeric,2),
-								elevation
+	var activities []*models.Activity
 
-							FROM 
-								activities
-							WHERE user_id = $1
-	`, userId)
-
-	activities := []*Activity{}
-
-	for rows.Next() {
-		activity, err := scanIntoActivity(rows)
-		if err != nil {
-			return nil, err
-		}
-		activities = append(activities, activity)
-	}
-
-	if err != nil {
-		fmt.Print(err)
+	if err := s.db.Where("user_id = ?", userId).Scan(activities); err.Error != nil {
+		return nil, err.Error
 	}
 
 	return activities, nil
 }
 
-func (s *PostgresStore) GetActivity(userId, activityId int) (*Activity, error) {
+func (s *PostgresStore) GetActivity(userId, activityId int) (*models.Activity, error) {
 
-	rows, err := s.db.Query(`SELECT a.id,
-								a.timestamp,
-								a.total_timer_time,
-								ROUND(a.distance::numeric,2),
-								a.elevation
-							FROM activities a
-							WHERE a.user_id = $1 AND a.id = $2
-	`, userId, activityId)
+	var activity *models.Activity
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer rows.Close() // Close the rows when you're done with them
-
-	if !rows.Next() {
-		// No rows were returned by the query
-		return nil, fmt.Errorf("No activity was found with for the user with the give activity id")
-	}
-
-	activity, err := scanIntoActivity(rows)
-
-	if err != nil {
-		fmt.Print(err)
+	if err := s.db.Where("user_id = ? AND id = ?", userId).Scan(activity); err.Error != nil {
+		return nil, err.Error
 	}
 
 	return activity, nil
-}
 
-func (s *PostgresStore) GetAc(userId int) ([]*Activity, error) {
-
-	rows, err := s.db.Query(`SELECT id,
-								timestamp,
-								total_timer_time,
-								ROUND(distance::numeric,2),
-								elevation
-
-							FROM 
-								activities
-							WHERE user_id = $1
-	`, userId)
-
-	activities := []*Activity{}
-
-	for rows.Next() {
-		activity, err := scanIntoActivity(rows)
-		if err != nil {
-			return nil, err
-		}
-		activities = append(activities, activity)
-	}
-
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	return activities, nil
-}
-
-func scanIntoActivity(rows *sql.Rows) (*Activity, error) {
-
-	var elevation sql.NullFloat64
-
-	activity := new(Activity)
-	err := rows.Scan(
-		&activity.ID,
-		&activity.Timestamp,
-		&activity.TotalRideTime,
-		&activity.Distance,
-		&elevation,
-	)
-
-	if elevation.Valid {
-		activity.Elevation = float32(elevation.Float64)
-	} else {
-		activity.Elevation = 0.0
-	}
-
-	return activity, err
-}
-
-type Activity struct {
-	ID            int       `json:"id"`
-	Timestamp     time.Time `json:"timestamp"`
-	TotalRideTime int       `json:"totalRideTime"`
-	Distance      float64   `json:"distance"`
-	Elevation     float32   `json:"elevation"`
-}
-
-type GetActivitiesDTO struct {
-	ID        int       `json:"id"`
-	Timestamp time.Time `json:"timeStamp"`
 }

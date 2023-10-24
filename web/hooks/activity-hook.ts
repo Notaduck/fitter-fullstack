@@ -1,14 +1,12 @@
 import activityServices from "@/services/activity-services";
 import { getAccessToken, getSession } from "@auth0/nextjs-auth0";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import axios from "axios";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 
 const useAllActivities = async () => {
 
-//   const { user } = useUser();
-//   console.log('USER',user)
-
-    return useQuery(["activities"],  activityServices.getAllActivities);
+    return useQuery(["activities"], activityServices.getAllActivities );
 };
 
 // const usePostById = () => {

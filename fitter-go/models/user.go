@@ -16,14 +16,15 @@ type CreateUserDTO struct {
 
 type User struct {
 	gorm.Model
-	ID        int       `gorm:"primaryKey" json:"id"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Email     string    `gorm:"unique" json:"email"`
-	Username  string    `gorm:"unique" json:"username"`
-	CreatedAt time.Time `json:"createdAt"`
-	IssuerURL string    `json:"issuerUrl"`
-	Auth0ID   string    `gorm:"unique" json:"auth0_id"`
+	ID         int       `gorm:"primaryKey" json:"id"`
+	FirstName  string    `json:"firstName"`
+	LastName   string    `json:"lastName"`
+	Email      string    `gorm:"unique" json:"email"`
+	Username   string    `gorm:"unique" json:"username"`
+	CreatedAt  time.Time `json:"createdAt"`
+	IssuerURL  string    `json:"issuerUrl"`
+	Auth0ID    string    `gorm:"unique" json:"auth0_id"`
+	Activities []Activity
 }
 
 func NewUser(firstName, lastName, password, username, email string) (*User, error) {
