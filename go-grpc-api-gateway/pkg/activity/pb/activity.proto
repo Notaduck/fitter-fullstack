@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package activity;
+
+option go_package = "./pkg/activity/pb";
+
+service ActivityService {
+  rpc GetActivity(GetActivityRequest) returns (GetActivityResponse) {}
+}
+
+message GetActivityRequest {
+  int64 activityId = 1;
+  int64 userId = 2;
+}
+
+message GetActivityResponse {
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
+}

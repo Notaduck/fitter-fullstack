@@ -16,7 +16,6 @@ services:
       - rabbitmq
     environment:
       AMQP_SERVER_URL: amqp://guest:guest@rabbitmq:5672/
-
   parser:
     container_name: fitter-go-parser
     build:
@@ -53,7 +52,6 @@ services:
         - '3000:3000'
       volumes:
         - ./web:/app
-        # - /app/node_modules
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
@@ -71,27 +69,10 @@ services:
         - 5672:5672
         - 15672:15672
       healthcheck:
-        test: [ "CMD", "nc", "-z", "127.0.0.1", "5672" ]
-        interval: 5s
-        timeout: 15s
-        retries: 1
-  # wait-for-rabbitmq:
-  #   build: 
-  #     context: .
-  #     dockerfile: "Dockerfile.wait-for-db"
-  #   entrypoint: ["/wait-for-it.sh", "rabbitmq:5672", "--", "echo", "RabbitMQ is ready!"]
-  #   depends_on:
-  #     - rabbitmq
-  #   command: ["--timeout=60"]
-  # wait-for-db:
-  #   build: 
-  #     context: .
-  #     dockerfile: "Dockerfile.wait-for-db"
-  #   entrypoint: ["/wait-for-it.sh", "db:5432", "--", "echo", "DB is ready!"]
-  #   depends_on:
-  #     - db
-  #   command: ["--timeout=60"]
-
+        test: ["CMD", "curl", "-f", "http://localhost:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
 volumes:
   pgadmin-data:
   dbdata:

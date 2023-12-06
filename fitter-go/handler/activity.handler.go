@@ -15,7 +15,7 @@ import (
 )
 
 func (s *APIServer) handleActivity(w http.ResponseWriter, r *http.Request) error {
-	enableCors(&w)
+	// enableCors(&w)
 	if r.Method == "GET" {
 		return s.getActivities(w, r)
 	}
@@ -36,31 +36,22 @@ func (s *APIServer) getActivities(w http.ResponseWriter, r *http.Request) error 
 
 	if id != "" {
 
-		ac := models.GetActivityDTO{}
-
 		num, err := strconv.Atoi(id)
 
 		if err != nil {
-			// log.Fatalln("The id must be a valid number")
-			return fmt.Errorf("The id [%s] must be a valid number.", id)
+			return fmt.Errorf("the id [%s] must be a valid number", id)
 		}
 
-		log.Default().Println("GET A SINGLE ACTIVITY WITH", num)
-		activity, err := s.storage.GetActivity(1, num)
+		activity, err := s.storage.GetActivity(user.ID, num)
 
-		ac.ID = activity.ID
-		ac.Distance = activity.Distance
-		ac.Elevation = activity.Elevation
-		ac.Timestamp = activity.Timestamp
-		ac.TotalRideTime = activity.TotalRideTime
-
-		if err != nil {
-			return err
+		ac := models.GetActivityDTO{
+			ID:            activity.ID,
+			Distance:      activity.Distance,
+			Elevation:     activity.Elevation,
+			Timestamp:     activity.Timestamp,
+			TotalRideTime: activity.TotalRideTime,
+			Records:       append([]models.Record{}, activity.Records...), // Assuming Records is a slice type
 		}
-
-		records, err := s.storage.GetRecordMsgs(activity.ID)
-
-		ac.Records = records
 
 		if err != nil {
 			return err
@@ -70,7 +61,7 @@ func (s *APIServer) getActivities(w http.ResponseWriter, r *http.Request) error 
 
 	}
 
-	activities, err := s.storage.GetActivities(1)
+	activities, err := s.storage.GetActivities(user.ID)
 
 	if err != nil {
 		fmt.Println(err)

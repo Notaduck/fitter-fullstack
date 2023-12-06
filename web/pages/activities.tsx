@@ -1,5 +1,4 @@
 
-
 import { QueryClient, dehydrate, useQuery } from "react-query";
 import React from "react";
 import Image from 'next/image'
@@ -9,30 +8,21 @@ import { useAllActivities } from "@/hooks/activity-hook";
 import { GetServerSideProps, GetStaticProps, InferGetServerSidePropsType, InferGetStaticPropsType } from "next";
 import axios from "axios";
 import { getSession, withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { ActivityList } from "@/app/components/activities/activitiesList";
 
 
 
 export default function ActivitiesPage({ user }){
 
-  const { data } = useAllActivities()
-
-
-
-
-  
+  const {data, isFetched} = useAllActivities()
 
   return (
 
-<main className="flex min-h-screen flex-col items-center justify-between p-23">
-      
+    <main>
+
       <h1>Activiteis IndexPage</h1>
-      {user?.name}
-
-
-      
+     { isFetched && <ActivityList activities={data!}/>}
     </main>
-    
-
   );
 }
 export const getServerSideProps = withPageAuthRequired();

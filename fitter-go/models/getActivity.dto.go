@@ -10,10 +10,10 @@ type RecordDTO struct {
 }
 
 type GetActivityDTO struct {
-	ID            int          `json:"id"`
-	Timestamp     time.Time    `json:"timestamp"`
-	TotalRideTime int          `json:"totalRideTime"`
-	Distance      float64      `json:"distance"`
-	Elevation     float32      `json:"elevation"`
-	Records       []*RecordDTO `json:"records"`
+	ID            int       `json:"id"`
+	Timestamp     time.Time `json:"timestamp"`
+	TotalRideTime int       `json:"totalRideTime"`
+	Distance      float64   `json:"distance"`
+	Elevation     float32   `json:"elevation"`
+	Records       []Record  `json:"records"`
 }

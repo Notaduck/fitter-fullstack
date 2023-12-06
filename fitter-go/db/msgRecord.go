@@ -1,5 +1,13 @@
 package storage
 
+// import "github.com/tormoder/fit"
+
+// func (s *PostgresStore) CreateMsgRecords(records []*fit.RecordMsg, activityId int64) error {
+
+// 	s.db.Create()
+
+// }
+
 // func (s *PostgresStore) CreateMsgRecords(records []*fit.RecordMsg, activityId int64) error {
 
 // 	return Transact(s.db, func(tx *sql.Tx) error {

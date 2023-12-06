@@ -13,7 +13,7 @@ func (s *PostgresStore) CreateActivity(userId int, activity *fit.ActivityFile) (
 
 	for _, record := range activity.Records {
 
-		records = append(records, models.Record{
+		records = append(records, &models.Record{
 			// Model:                         gorm.Model{},
 			// ID:                            userId,
 			// ActivityID:                    0,
@@ -92,8 +92,8 @@ func (s *PostgresStore) GetActivities(userId int) ([]*models.Activity, error) {
 
 	var activities []*models.Activity
 
-	if err := s.db.Where("user_id = ?", userId).Scan(activities); err.Error != nil {
-		return nil, err.Error
+	if err := s.db.Table("activities").Where("user_id = ?", userId).Find(&activities).Error; err != nil {
+		return nil, err
 	}
 
 	return activities, nil
@@ -103,8 +103,8 @@ func (s *PostgresStore) GetActivity(userId, activityId int) (*models.Activity, e
 
 	var activity *models.Activity
 
-	if err := s.db.Where("user_id = ? AND id = ?", userId).Scan(activity); err.Error != nil {
-		return nil, err.Error
+	if err := s.db.Preload("Records").Where("user_id = ? AND id = ?", userId, activityId).First(&activity).Error; err != nil {
+		return nil, err
 	}
 
 	return activity, nil

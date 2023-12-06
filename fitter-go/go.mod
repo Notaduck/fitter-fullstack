@@ -8,6 +8,8 @@ require (
 	golang.org/x/oauth2 v0.12.0
 )
 
+require github.com/gosimple/unidecode v1.0.1 // indirect
+
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/auth0/go-auth0 v1.1.0 // indirect
@@ -19,6 +21,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20210914165742-4cc7213b9bc8 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/gosimple/slug v1.13.1
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.4.3 // indirect

@@ -20,5 +20,6 @@ type Activity struct {
 	EventType      int       `json:"eventType"`
 	LocalTimestamp time.Time `json:"localTimestamp"`
 	EventGroup     int       `json:"eventGroup"`
-	Records        []Record
+	UserId         int       `json:"userId"`
+	Records        []Record  `json:"records"`
 }

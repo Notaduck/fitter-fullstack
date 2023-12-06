@@ -1,30 +1,44 @@
 import { getAccessToken, getSession } from '@auth0/nextjs-auth0'
-import axios, { AxiosRequestConfig, AxiosRequestHeaders, AxiosResponseHeaders } from 'axios'
+import axios, { AxiosHeaders, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponseHeaders } from 'axios'
 import type { NextApiRequest, NextApiResponse } from 'next'
- 
+
 type ResponseData = {
   message: string
 }
- 
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
 
-    const { accessToken} = await getAccessToken(req,res)
+  if (req.method === 'GET') {
 
-    const { idToken } = await getSession(req,res)
-    const headers : Partial<AxiosRequestHeaders> = {
-     Authorization: `Bearer ${idToken}`  
+    const hasQueryParams = Object.keys(req.query).length > 0;
+
+    if(hasQueryParams) {
     }
 
-    const activities = await axios.get('http://fitter-go:3030/activity', {
-      headers
-    })
+    try {
 
-    console.log('access token ======>',activities)
-    // console.log(s?.accessToken)
-    // console.log(s?.idToken)
+      const { accessToken } = await getAccessToken(req, res)
 
-    res.status(200).json(activities)
+      const { idToken } = await getSession(req, res)
+      const headers: Partial<AxiosHeaders> = {
+        Authorization: `Bearer ${idToken}`
+      }
+
+      const activities = await axios.get('http://fitter-go:3030/activity', {
+        headers
+      })
+
+
+
+      res.json(activities.data)
+    } catch (err) {
+      console.error(err)
+    }
+
+
+
+  }
 }

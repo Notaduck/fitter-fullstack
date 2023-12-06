@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -291,7 +292,7 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 func EnsureValidToken() func(http.HandlerFunc) http.HandlerFunc {
 	issuerURL, err := url.Parse("https://" + os.Getenv("AUTH0_DOMAIN") + "/")
 	if err != nil {
-		log.Fatalf("Failed to parse the issuer url: %v", err)
+		slog.Error("Failed to parse the issuer url:", err.Error())
 	}
 
 	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
@@ -310,11 +311,11 @@ func EnsureValidToken() func(http.HandlerFunc) http.HandlerFunc {
 	)
 
 	if err != nil {
-		log.Fatalf("Failed to set up the jwt validator")
+		slog.Error("Failed to set up the jwt validator")
 	}
 
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf("Encountered error while validating JWT: %v", err)
+		slog.Error("Encountered error while validating JWT: %v", err)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
